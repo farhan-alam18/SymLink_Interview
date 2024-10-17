@@ -9,17 +9,10 @@ const Form = () => {
     firstName: "",
     lastName: "",
     adminEmail: "",
-    evalFrequency: [],
-    evalPeriodName: [],
   });
+
   const [evalFrequency, setEvalFrequency] = useState("");
-  const [evaluationData, setEvaluationData] = useState([
-    {
-      title: "",
-      startDate: "",
-      endDate: "",
-    },
-  ]);
+  const [evaluationData, setEvaluationData] = useState([]);
 
   const handleChange = (e) => {
     setFormData({
@@ -28,19 +21,53 @@ const Form = () => {
     });
   };
 
+  const handleFrequencyChange = (e) => {
+    const frequency = e.target.value;
+    setEvalFrequency(frequency);
+
+    let evaluationPeriods = [];
+    if (frequency === "Annually") {
+      evaluationPeriods = [{ title: "", startDate: "", endDate: "" }];
+    } else if (frequency === "Semi-annually") {
+      evaluationPeriods = [
+        { title: "", startDate: "", endDate: "" },
+        { title: "", startDate: "", endDate: "" },
+      ];
+    } else if (frequency === "Quarterly") {
+      evaluationPeriods = [
+        { title: "", startDate: "", endDate: "" },
+        { title: "", startDate: "", endDate: "" },
+        { title: "", startDate: "", endDate: "" },
+        { title: "", startDate: "", endDate: "" },
+      ];
+    }
+
+    setEvaluationData(evaluationPeriods);
+  };
+
+  const handleInputChange = (index, field, value) => {
+    const newData = [...evaluationData];
+    newData[index][field] = value;
+    setEvaluationData(newData);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const data = new FormData();
-    data.append("companyName", formData.companyName);
-    data.append("price", formData.price);
-    data.append("numberOfEmployees", formData.numberOfEmployees);
-    data.append("accountStatus", formData.accountStatus);
-    data.append("firstName", formData.firstName);
-    data.append("lastName", formData.lastName);
-    data.append("adminEmail", formData.adminEmail);
-    data.append("evalFrequency", formData.evalFrequency);
-    data.append("evalPeriodName", formData.evalPeriodName);
+    const evalData = {
+      ...formData,
+      data: {
+        title: "Evaluation",
+        evalDuration: evaluationData.map((evalItem, index) => ({
+          key: index,
+          title: evalItem.title,
+          startDate: evalItem.startDate,
+          endDate: evalItem.endDate,
+        })),
+      },
+    };
+
+    console.log("Submission Data:", evalData);
 
     try {
       const response = await fetch(
@@ -50,9 +77,9 @@ const Form = () => {
           headers: {
             Authorization:
               "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoiOWJveCIsImVtYWlsIjoiYWRtaW5AOWJveC5jb20iLCJpYXQiOjE3MjkxNTcxNjIsImV4cCI6MTcyOTE3MTU2Mn0.4_MjWyc5ACfkWwLdcEopGJlPFmxP9DznkBk2RtftzbA",
+            "Content-Type": "application/json",
           },
-
-          body: data,
+          body: JSON.stringify(evalData),
         }
       );
 
@@ -64,37 +91,9 @@ const Form = () => {
         alert("Failed to submit form");
       }
     } catch (error) {
-      console.error("Error:", error);
+      console.error("Error:", error.message);
       alert("Error submitting the form");
     }
-  };
-
-  const handleFrequencyChange = (e) => {
-    const frequency = e.target.value;
-    setEvalFrequency(frequency);
-    if (frequency === "Annually") {
-      setEvaluationData([{ title: "", startDate: "", endDate: "" }]);
-    } else if (frequency === "Semi-annually") {
-      setEvaluationData([
-        { title: "", startDate: "", endDate: "" },
-        { title: "", startDate: "", endDate: "" },
-      ]);
-    } else if (frequency === "Quarterly") {
-      setEvaluationData([
-        { title: "", startDate: "", endDate: "" },
-        { title: "", startDate: "", endDate: "" },
-        { title: "", startDate: "", endDate: "" },
-        { title: "", startDate: "", endDate: "" },
-      ]);
-    } else {
-      setEvaluationData([]);
-    }
-  };
-
-  const handleInputChange = (index, field, value) => {
-    const newData = [...evaluationData];
-    newData[index][field] = value;
-    setEvaluationData(newData);
   };
 
   return (
@@ -142,9 +141,9 @@ const Form = () => {
           value={formData.accountStatus}
           onChange={handleChange}
         >
-          <option value="">Select Status</option>
-          <option value="Active">Active</option>
-          <option value="Inactive">Inactive</option>
+          <option value="">Select Account Status</option>
+          <option value="paid">Paid</option>
+          <option value="free">Free</option>
         </select>
       </div>
 
@@ -176,6 +175,7 @@ const Form = () => {
           onChange={handleChange}
         />
       </div>
+
       <div>
         <h1>Evaluation Period</h1>
         <label>Evaluation Frequency : </label>
@@ -189,21 +189,14 @@ const Form = () => {
 
       {evaluationData.map((evalItem, index) => (
         <div key={index}>
-          <h3>
-            {evalFrequency == "Anually"
-              ? "Annual Evaluation"
-              : evalFrequency == "Semi-annually"
-              ? "Semi-Annual Evaluation"
-              : "Quartrely Evaluation"}
-          </h3>
-
-          <label>Title</label>
+          <h3>Evaluation {index + 1}</h3>
+          <label>Title : </label>
           <input
             type="text"
-            value={evalItem.tile}
+            value={evalItem.title}
             onChange={(e) => handleInputChange(index, "title", e.target.value)}
           />
-          <label>Start Date</label>
+          <label>Start Date : </label>
           <input
             type="date"
             value={evalItem.startDate}
@@ -211,7 +204,7 @@ const Form = () => {
               handleInputChange(index, "startDate", e.target.value)
             }
           />
-          <label>End Date</label>
+          <label>End Date : </label>
           <input
             type="date"
             value={evalItem.endDate}

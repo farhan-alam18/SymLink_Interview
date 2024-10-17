@@ -9,7 +9,7 @@ const upload = multer();
 
 app.post("/api/company-administrator", upload.none(), (req, res) => {
   const formData = req.body;
-  console.log("Form Data : ", formData);
+  // console.log("Form Data : ", formData);
   res.status(200).json({
     message: "Form successfully submitted",
     data: formData,
